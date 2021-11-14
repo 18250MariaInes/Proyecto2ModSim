@@ -1,17 +1,49 @@
 import pygame
 import random
 from random import randint, sample
-from point import Point
+#from point import Point
 from utils import *
 from genetic import Genetic
 
 offset          = 100
-width, height   = 1920, 1080
+width, height   = 1080, 600
 populationSize  = 500
 n = 10
 colony_size = 10
 iterations = 300
 pygame.font.init()
+
+textColor   = (0, 0, 0)
+textFont    = pygame.font.SysFont("Arial", 20)
+
+class Point:
+    def __init__(self, x, y):
+        self.x      = x
+        self.y      = y
+        self.radius = 1
+        self.alpha  = 150
+
+    def Draw(self, manager, showIndex=False, highlight=False, point_index=0):
+        surface = pygame.Surface((self.radius *2, self.radius*2), pygame.SRCALPHA, 32)
+
+        if highlight:
+            r, g, b = manager.White
+            pygame.draw.circle(surface, (r, g, b, 255), (self.radius, self.radius), self.radius)
+            pygame.draw.circle(surface, (r, g, b, 255), (self.radius, self.radius), self.radius, 1)
+
+
+        manager.screen.blit(surface, (int(self.x-self.radius), int(self.y-self.radius)))
+
+        if showIndex:
+            textSurface = textFont.render(str(point_index), True, textColor)
+            textRectangle = textSurface.get_rect(center=(self.x, self.y))
+            manager.screen.blit(textSurface, textRectangle)
+
+    def GetTuple(self):
+        return (self.x, self.y)
+
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
 
 class Manager(object):
     size            = (width, height)
@@ -22,18 +54,13 @@ class Manager(object):
     max_radius      = 15
     Black           = (0, 0, 0)
     White           = (255, 255, 255)
-    Yellow          = (255, 255, 0)
     Gray            = (100, 100, 100)
-    Highlight       = (255, 255, 0)
+    Highlight       = (51, 153, 255)
     LineThickness   = 4
     showIndex       = True
     n_points        = n
-    #algorithms        = ["Brute Force", "Lexicographic Order", "Genetic Algorithm", "Ant Colony ACS", "Ant Colony Elitist", "Ant Colony Max-Min"]
-
     genetic         = Genetic([sample(list(range(n)), n) for i in range(populationSize)], populationSize)
-
     PossibleCombinations = Factorial(n_points)
-    # print("possible combinations : {}".format(Factorial(n_points)))
 
     Order           = [i for i in range(n_points)]
     counter         = 0
@@ -54,27 +81,12 @@ class Manager(object):
 
     def UpdateCaption(self):
         frameRate = int(self.clock.get_fps())
-        pygame.display.set_caption("Traveling Salesman Problem - Fps : {}".format(frameRate))
+        pygame.display.set_caption("TSP - Fps : {}".format(frameRate))
 
     def Counter(self):
         self.counter += 1
         if self.counter > self.PossibleCombinations:
             self.counter = self.PossibleCombinations
-
-    def Lexicographic(self):
-        self.Order = LexicalOrder(self.Order)
-        nodes = []
-        for i in self.Order:
-            nodes.append(self.Points[i])
-
-        self.Counter()
-
-        dist = SumDistance(nodes)
-        if dist < self.recordDistance:
-            self.recordDistance = dist
-            self.OptimalRoutes  = nodes.copy()
-            #print("Shortest distance : {}" .format(self.recordDistance))
-        self.DrawLines()
 
     def GeneticAlgorithm(self):
         self.genetic.CalculateFitness(self.Points)
@@ -99,28 +111,16 @@ class Manager(object):
         self.currentList     = self.Points.copy()
 
 
-    def Percentage(self, val):
-        percent = (self.counter/val) * 100
-        textColor   = (255, 255, 255)
-        # textFont    = pg.font.Font("freesansbold.ttf", size)
-        textFont    = pygame.font.SysFont("Arial", 20)
-        textSurface = textFont.render(str(round(percent, 4)), False, textColor)
-        self.screen.blit(textSurface, (width//2, 50))
-
     def ShowText(self, selectedIndex, started = True):
         textColor   = (255, 255, 255)
-        # textFont    = pg.font.Font("freesansbold.ttf", size)
         textFont    = pygame.font.SysFont("Times", 20)
         textFont2    = pygame.font.SysFont("Arial Black", 40)
 
-        textSurface1 = textFont.render("Best distance : " + str(round(self.recordDistance,2)), False, textColor)
-        textSurface2 = textFont.render("Genetic Algorithm", False, textColor)
-        textSurface3 = textFont2.render("... Press ' SPACE ' to start ..." ,False, textColor)
+        textSurface1 = textFont.render("Mejor distancia encontrada hasta ahora : " + str(round(self.recordDistance,2)), False, textColor)
+        textSurface2 = textFont.render("Algoritmo Genético", False, textColor)
 
-        self.screen.blit(textSurface1, (100, 70))
-        self.screen.blit(textSurface2, (100, 35))
-        if started == False:
-            self.screen.blit(textSurface3, (width//2, height-200))
+        self.screen.blit(textSurface1, (70, 70))
+        self.screen.blit(textSurface2, (70, 35))
 
     def DrawShortestPath(self):
         if len(self.OptimalRoutes) > 0:

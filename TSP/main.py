@@ -1,5 +1,5 @@
 import pygame
-from point import *
+#from point import *
 from manager import *
 from random import randint
 from UI.setup import *
@@ -39,8 +39,25 @@ while run:
             if event.key == pygame.K_SPACE:
                 pause = not pause
                 started = True
-            if event.key == pygame.K_RETURN:
-                showUI = not showUI
+            if event.key == pygame.K_n:
+                manager.RandomPoints()
+                GenerateToggle = False
+                RandomButton.state = False
+                reset = False
+                ResetButton.state = False
+                temp = manager.Points.copy()
+                manager = Manager(temp)
+                manager.OptimalRoutes = manager.Points.copy()
+                manager.recordDistance = SumDistance(manager.Points)
+                manager.ResetGenetic()
+            if event.key == pygame.K_r:
+                reset = False
+                ResetButton.state = False
+                temp = manager.Points.copy()
+                manager = Manager(temp)
+                manager.OptimalRoutes = manager.Points.copy()
+                manager.recordDistance = SumDistance(manager.Points)
+                manager.ResetGenetic()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -87,13 +104,9 @@ while run:
             RandomButton.state = False
 
         if pause == True:
-            PauseButton.text = "Continue"
+            PauseButton.text = "Continuar"
         else:
-            PauseButton.text = "Pause"
-
-        """if rightMouseClicked:
-            selectedIndex = AlgorithmChoice.currentIndex"""
-
+            PauseButton.text = "Pausar"
 
     # point scale animation increment
     manager.scaler += 1
