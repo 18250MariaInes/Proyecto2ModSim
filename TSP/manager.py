@@ -7,7 +7,7 @@ import numpy as np
 
 offset          = 100 #donde se muestra la pnatalla
 width, height   = 1080, 600 #dimensiones del programa
-n = 12 #cantidad de puntos
+n = 8 #cantidad de puntos
 populationSize  = 5*n #tamaño de la poblacion
 iterations = 300 #cantidad de generaciones máximas 
 pygame.font.init() #inicamos pygame

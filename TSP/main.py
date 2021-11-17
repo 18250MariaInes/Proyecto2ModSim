@@ -80,12 +80,13 @@ while run: #mientras se corra el programa
 
     manager.ShowText(selectedIndex, started) #muestra los textos
 
-    # UI
+    # UI de videojuego con Pygame
     if showUI:
         panel.Render(manager.screen)
         if pause != PauseButton.state:
             PauseButton.state = pause
-
+        
+        #Menu de acciones a realizar, reiniciar, pausar y nuevo
         PauseButton.Render(manager.screen, rightMouseClicked)
         ResetButton.Render(manager.screen, rightMouseClicked)
         RandomButton.Render(manager.screen, rightMouseClicked)
@@ -113,7 +114,7 @@ while run: #mientras se corra el programa
         else:
             PauseButton.text = "Pausar"
 
-    # point scale animation increment
+    # conteo de iteraciones
     manager.scaler += 1
     if manager.scaler > manager.max_radius:
         manager.scaler = manager.max_radius
