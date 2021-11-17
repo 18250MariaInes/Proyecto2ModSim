@@ -1,70 +1,84 @@
 from utils import *
 from random import randint
+import numpy as np
+
+#Diccionario de conceptos
+
+#Genes: es un punto representado con sus coordenadas (x, y)
+
+#Cromosomas: son las rutas entre puntos 
+
+#Fitness: una función que determina que tan buena es una ruta en este caso que tan pequeña es su distancia
+
+#Mutacion: esta es la forma en que introducimos la varaición, cambiando aleatoriamente dos ciudades
+
+#Selección natural, determina que individuos sobreviven y cuales no para la siguiente generación
+
+#Población: es la colección de todas las posibles rutas 
+
 
 class Genetic:
-    def __init__(self, population=[], populationSize=0):
-        self.population = population
-        self.size = populationSize
-        self.fitness = [0 for i in range(populationSize)]
-        self.record = float("inf")
-        self.currentDist = float("inf")
-        self.current = None
-        self.fitest = []
-        self.fitestIndex = 0
-        self.mutation_rate = 0.01
+    def __init__(self, poblacion=[], poblacion_size=0):
+        self.poblacion = poblacion #la cantidad de puntos
+        self.size = poblacion_size #el tamaño de cada generación
+        self.fitness = [0 for i in range(poblacion_size)]
+        self.record = float("inf") #distancia minima
+        self.currentDist = float("inf") #distancia actual
+        self.current = None #poblacion actual
+        self.fitest = [] #la lista de la mejor población
+        self.fitestIndex = 0 #indice de la lista 
+        self.mutation_rate = 0.9 #la probabilidad de mutar
 
-    def CalculateFitness(self, points):
-        for i in range(self.size):
-            nodes = []
-            for j in self.population[i]:
-                nodes.append(points[j])
-            #print(nodes)
-            dist = SumDistance(nodes)
-            if dist < self.currentDist:
-                self.current = self.population[i]
+    def CalculateFitness(self, puntos): #funcion que indica que tan buena es una ruta 
+        for i in range(self.size): #en el tamaño de la generación
+            nodos = [] 
+            for j in self.poblacion[i]:
+                nodos.append(puntos[j]) #tomamos los nodos
+            dist = Distancia_tot(nodos) #calculamos la distancia total 
+            if dist < self.currentDist: #evaluamos si la distancia es mejor
+                self.current = self.poblacion[i] #actualizamos la población
 
-            if dist < self.record :
-                self.record = dist
-                self.fitest = self.population[i]
-                self.fitestIndex = i
-                #print(f"Shortest distance: {dist}")
-            self.fitness[i] = 1/ (dist+1)
-        self.NormalizeFitnesss()
+            if dist < self.record: #evaluamos que la distancia sea mejor 
+                self.record = dist #actualizamos el recrod
+                self.fitest = self.poblacion[i] #actualizamos la población
+                self.fitestIndex = i#actualizamos el índice
+            self.fitness[i] = 1/ (dist+1) #actualizamos fitness de cada punto
+        self.NormalizarFitness() #normalizamos la fitness
 
-    def NormalizeFitnesss(self):
+    def NormalizarFitness(self):
         s = 0
         for i in range(self.size):
-            s += self.fitness[i]
+            s += self.fitness[i] #sumamos todas las fitness
         for i in range(self.size):
-            self.fitness[i] = self.fitness[i]/s
+            self.fitness[i] = self.fitness[i]/s #normalizamos todas las fitness
 
-    def Mutate(self, genes):
-        for i in range(len(self.population[0])):
-            if (randint(0, 100)/100) < self.mutation_rate:
-                a = randint(0, len(genes)-1)
-                b = randint(0, len(genes)-1)
-                genes[a], genes[b] = genes[b], genes[a]
+    def Mutar(self, genes): #la función que muta los gentes 
+        for i in range(len(self.poblacion[0])): #para tida ka oiblación
+            if np.random.uniform(0,1) < self.mutation_rate: #decidimos si muta o no
+                a = randint(0, len(genes)-1) #seleccionamos un gen al azar
+                b = randint(0, len(genes)-1) #seleccionamos un gen al azar
+                genes[a], genes[b] = genes[b], genes[a] #se cambian de lugar los genes 
 
-    def CrossOver(self, genes1, genes2):
-        start = randint(0, len(genes1)-1)
-        end   = randint(start-1, len(genes2)-1)
+    def CrossOver(self, gen1, gen2):
+        start = randint(0, len(gen1)-1) #seleccionamos el inicio de una cadena de genes
+        end   = randint(start-1, len(gen2)-1) #seleccionamos el final de la cadena de genes
         try:
-            end = randint(start+1, len(genes2)-1)
+            end = randint(start+1, len(gen2)-1) #probamos que el final exista
         except:
             pass
-        new_genes = genes1[start:end]
-        for i in range(len(genes2)):
-            p = genes2[i]
-            if p not in new_genes:
-                new_genes.append(p)
-        return new_genes
+        nuevos_genes = gen1[start:end] #generamos la nueva listas de genes
+        for i in range(len(gen2)):
+            p = gen2[i] #seleccionamos un gen de la lista
+            if p not in nuevos_genes: #si no está 
+                nuevos_genes.append(p) #lo agregamos
+        return nuevos_genes #devolvemos los nuevos genes 
 
     def NaturalSelection(self):
-        nextPopulation = []
+        poblacion_siguiente = [] #lista de población siguiente
         for i in range(self.size):
-            generation1 = PickSelection(self.population, self.fitness)
-            generation2 = PickSelection(self.population, self.fitness)
-            genes = self.CrossOver(generation1, generation2)
-            self.Mutate(genes)
-            nextPopulation.append(genes)
-        self.population = nextPopulation
+            generacion1 = Escoger(self.poblacion, self.fitness) #escogemos población con buenas fitness (prob)
+            generacion2 = Escoger(self.poblacion, self.fitness) #escogemos otra problación con buena fitness (prob)
+            genes = self.CrossOver(generacion1, generacion2) #cruzamos los genes
+            self.Mutar(genes) #mutamos esos genes
+            poblacion_siguiente.append(genes) #generamos la población siguiente
+        self.poblacion = poblacion_siguiente #actualizamos la población
