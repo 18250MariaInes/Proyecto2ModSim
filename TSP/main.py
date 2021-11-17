@@ -1,83 +1,88 @@
 import pygame
-#from point import *
 from manager import *
 from random import randint
 from UI.setup import *
-from utils import SumDistance
+from utils import Distancia_tot
 
-pygame.init()
+pygame.init() #iniciamos pygame 
 
-manager = Manager()
+manager = Manager() #creamos una isntancia del manager
 
-selectedIndex = 2
+selectedIndex = 2 
 
-pause = True
-started = False
+#definimos variables interactivas 
+
+pause = True 
+started = False 
 rightMouseClicked = False
 GenerateToggle = False
 reset = False
 
-PauseButton.state = pause
-ResetButton.state = reset
-RandomButton.state = GenerateToggle
+PauseButton.state = pause #para pausar el juego
+ResetButton.state = reset  #para resetearlo 
+RandomButton.state = GenerateToggle #botones
+
 
 showUI = False
 run = True
-while run:
-    manager.Background()
+while run: #mientras se corra el programa 
+    manager.Background() #colocamos un background
+    
+    delta_time = manager.SetFps() #colocamos los FPS definidos en manager
+    manager.UpdateCaption() #se actualiza la barra
 
-    delta_time = manager.SetFps()
-    manager.UpdateCaption()
-
-    # handle Events
+    # Eventos
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT: #para salir del juego
             run = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+        if event.type == pygame.KEYDOWN: 
+            if event.key == pygame.K_ESCAPE: #para salir del juego
                 run = False
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE: #para pausar el juego
                 pause = not pause
                 started = True
-            if event.key == pygame.K_n:
-                manager.RandomPoints()
+            if event.key == pygame.K_n: #para generar nuevos puntos aleatorios
+                manager.RandomPoints() #generamos puntos aleatorios 
                 GenerateToggle = False
-                RandomButton.state = False
+                RandomButton.state = False 
+                reset = False 
+                ResetButton.state = False 
+                temp = manager.Points.copy() #copiamos esos puntos
+                manager = Manager(temp) #definimos la nueva temp
+                manager.OptimalRoutes = manager.Points.copy() #buscamos las rutas optimas 
+                manager.recordDistance = Distancia_tot(manager.Points) #acutalizamos la distancias 
+                manager.ResetGenetic() #reseteamos el algoritmo 
+            if event.key == pygame.K_r: #para resetear los puntos 
                 reset = False
                 ResetButton.state = False
-                temp = manager.Points.copy()
-                manager = Manager(temp)
-                manager.OptimalRoutes = manager.Points.copy()
-                manager.recordDistance = SumDistance(manager.Points)
-                manager.ResetGenetic()
-            if event.key == pygame.K_r:
-                reset = False
-                ResetButton.state = False
-                temp = manager.Points.copy()
-                manager = Manager(temp)
-                manager.OptimalRoutes = manager.Points.copy()
-                manager.recordDistance = SumDistance(manager.Points)
-                manager.ResetGenetic()
+                temp = manager.Points.copy() #reseteamos los puntos
+                manager = Manager(temp) #definimos la temp
+                manager.OptimalRoutes = manager.Points.copy() #buscamos las rutas optimas 
+                manager.recordDistance = Distancia_tot(manager.Points) #actualizamos la distancia
+                manager.ResetGenetic() #reseteamos el algoritmo
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN: 
             if event.button == 1:
                 rightMouseClicked = True
+    if int(manager.actual_gen/manager.col_size) > manager.generations or (int(manager.contador/manager.col_size) > 49): #criterio de paro 
+    #si se completan todas las generaciones indicadas o si pasan 50 generaciones sin actualizaciones de la distancia mínima 
+        pause = True
+        
 
 
-    # Choose one method between the 3 below: bruteForce, lexicagraphic order, genetic algorithm
+    #Para ejecutar el algoritmo genético
     if selectedIndex == 2:
-        if pause == False:
-            manager.GeneticAlgorithm()
-        manager.DrawPoints()
-        manager.DrawShortestPath()
+        if pause == False: #corre el algoritmo
+            manager.GeneticAlgorithm() 
+        manager.DrawPoints()#dibuja los puntos
+        manager.DrawShortestPath() #dibuja los caminos
     
 
-    manager.ShowText(selectedIndex, started)
+    manager.ShowText(selectedIndex, started) #muestra los textos
 
     # UI
     if showUI:
         panel.Render(manager.screen)
-        #AlgorithmChoice.Render(manager.screen, rightMouseClicked)
         if pause != PauseButton.state:
             PauseButton.state = pause
 
@@ -94,7 +99,7 @@ while run:
             temp = manager.Points.copy()
             manager = Manager(temp)
             manager.OptimalRoutes = manager.Points.copy()
-            manager.recordDistance = SumDistance(manager.Points)
+            manager.recordDistance = Distancia_tot(manager.Points)
             manager.ResetGenetic()
 
         GenerateToggle = RandomButton.state
